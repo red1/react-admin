@@ -2,42 +2,61 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import compose from 'recompose/compose';
-import { withStyles, createStyles } from '@material-ui/core/styles';
+import {
+    withStyles,
+    createStyles,
+    Theme,
+    WithStyles,
+} from '@material-ui/core/styles';
 import { fade } from '@material-ui/core/styles/colorManipulator';
 import ActionDelete from '@material-ui/icons/Delete';
 import classnames from 'classnames';
-import { translate, crudDelete, startUndoable } from 'ra-core';
+import {
+    crudDelete,
+    startUndoable as startUndoableAction,
+    Dispatch,
+    Record,
+    RedirectionSideEffect,
+} from 'ra-core';
 
 import Button from './Button';
+import { ButtonWithIconProps } from './types';
 
-const styles = theme => createStyles({
-    deleteButton: {
-        color: theme.palette.error.main,
-        '&:hover': {
-            backgroundColor: fade(theme.palette.error.main, 0.12),
-            // Reset on mouse devices
-            '@media (hover: none)': {
-                backgroundColor: 'transparent',
+interface Props extends ButtonWithIconProps {
+    onClick?: () => void;
+    redirect: RedirectionSideEffect;
+    undoable: boolean;
+}
+
+// Props injected by react-admin
+interface InjectedProps {
+    basePath: string;
+    record: Record;
+    resource: string;
+}
+
+interface EnhancedProps extends WithStyles<typeof styles> {
+    dispatchCrudDelete: Dispatch<typeof crudDelete>;
+    startUndoable: Dispatch<typeof startUndoableAction>;
+}
+
+const styles = (theme: Theme) =>
+    createStyles({
+        deleteButton: {
+            color: theme.palette.error.main,
+            '&:hover': {
+                backgroundColor: fade(theme.palette.error.main, 0.12),
+                // Reset on mouse devices
+                '@media (hover: none)': {
+                    backgroundColor: 'transparent',
+                },
             },
         },
-    },
-});
+    });
 
-const sanitizeRestProps = ({
-    basePath,
-    classes,
-    dispatchCrudDelete,
-    filterValues,
-    label,
-    resource,
-    selectedIds,
-    startUndoable,
-    undoable,
-    redirect,
-    ...rest
-}) => rest;
-
-class DeleteButton extends Component {
+class DeleteButtonView extends Component<
+    Props & InjectedProps & EnhancedProps
+> {
     handleDelete = event => {
         event.stopPropagation();
         const {
@@ -65,11 +84,18 @@ class DeleteButton extends Component {
 
     render() {
         const {
-            label = 'ra.action.delete',
-            classes = {},
+            basePath,
+            classes,
+            dispatchCrudDelete,
             className,
             icon,
+            label = 'ra.action.delete',
             onClick,
+            record,
+            redirect,
+            resource,
+            startUndoable,
+            undoable,
             ...rest
         } = this.props;
         return (
@@ -82,7 +108,7 @@ class DeleteButton extends Component {
                     className
                 )}
                 key="button"
-                {...sanitizeRestProps(rest)}
+                {...rest}
             >
                 {icon}
             </Button>
@@ -90,21 +116,22 @@ class DeleteButton extends Component {
     }
 }
 
+const DeleteButton = compose(
+    connect(
+        null,
+        { startUndoable: startUndoableAction, dispatchCrudDelete: crudDelete }
+    ),
+    withStyles(styles)
+)(DeleteButtonView);
+
 DeleteButton.propTypes = {
-    basePath: PropTypes.string,
-    classes: PropTypes.object,
     className: PropTypes.string,
-    dispatchCrudDelete: PropTypes.func.isRequired,
     label: PropTypes.string,
-    record: PropTypes.object,
     redirect: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.bool,
         PropTypes.func,
     ]),
-    resource: PropTypes.string.isRequired,
-    startUndoable: PropTypes.func,
-    translate: PropTypes.func,
     undoable: PropTypes.bool,
     icon: PropTypes.element,
 };
@@ -115,11 +142,4 @@ DeleteButton.defaultProps = {
     icon: <ActionDelete />,
 };
 
-export default compose(
-    connect(
-        null,
-        { startUndoable, dispatchCrudDelete: crudDelete }
-    ),
-    translate,
-    withStyles(styles)
-)(DeleteButton);
+export default DeleteButton;
