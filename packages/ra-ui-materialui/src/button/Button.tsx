@@ -7,16 +7,21 @@ import MuiButton, {
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import { withStyles, createStyles, WithStyles } from '@material-ui/core/styles';
+import { Overwrite } from '@material-ui/core';
 import classnames from 'classnames';
 import { withTranslate, TranslationContextProps } from 'ra-core';
 
 import Responsive from '../layout/Responsive';
 import { IconProps } from '@material-ui/core/Icon';
 
-export interface ButtonProps extends MuiButtonProps {
-    alignIcon: 'left' | 'right';
-    label: string;
+interface ButtonOverrideProps {
+    label?: string;
     children: ReactElement<IconProps>;
+}
+
+export interface ButtonProps
+    extends Overwrite<MuiButtonProps, ButtonOverrideProps> {
+    alignIcon: 'left' | 'right';
 }
 
 interface EnhancedProps
@@ -51,7 +56,7 @@ const ButtonView: SFC<ButtonProps & EnhancedProps> = ({
     classes,
     className,
     color,
-    disabled,
+    disabled = false,
     label,
     size,
     translate,
@@ -129,6 +134,7 @@ Button.propTypes = {
 };
 
 Button.defaultProps = {
+    disabled: false,
     alignIcon: 'left',
     color: 'primary',
     size: 'small',

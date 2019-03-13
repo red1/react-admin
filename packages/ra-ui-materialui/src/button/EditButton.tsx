@@ -1,23 +1,30 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, { SFC, ComponentType } from 'react';
 import shouldUpdate from 'recompose/shouldUpdate';
 import ContentCreate from '@material-ui/icons/Create';
 import { Link } from 'react-router-dom';
-import { linkToRecord } from 'ra-core';
+import { linkToRecord, TranslationContextProps, Record } from 'ra-core';
 
 import Button from './Button';
+import { ButtonWithIconProps, buttonWithIconPropTypes } from './types';
 
+// Props injected by react-admin
+interface InjectedProps {
+    basePath: string;
+    record: Record;
+    resource: string;
+}
 // useful to prevent click bubbling in a datagrid with rowClick
 const stopPropagation = e => e.stopPropagation();
 
-const EditButton = ({
+const EditButtonView: SFC<ButtonWithIconProps & InjectedProps> = ({
     basePath = '',
-    label = 'ra.action.edit',
-    record = {},
-    icon = <ContentCreate />,
+    label,
+    record,
+    icon,
     ...rest
 }) => (
     <Button
+        // @ts-ignore
         component={Link}
         to={linkToRecord(basePath, record.id)}
         label={label}
@@ -28,17 +35,11 @@ const EditButton = ({
     </Button>
 );
 
-EditButton.propTypes = {
-    basePath: PropTypes.string,
-    className: PropTypes.string,
-    classes: PropTypes.object,
-    label: PropTypes.string,
-    record: PropTypes.object,
-    icon: PropTypes.element,
-};
-
 const enhance = shouldUpdate(
-    (props, nextProps) =>
+    (
+        props: InjectedProps & TranslationContextProps,
+        nextProps: InjectedProps & TranslationContextProps
+    ) =>
         props.translate !== nextProps.translate ||
         (props.record &&
             nextProps.record &&
@@ -47,4 +48,15 @@ const enhance = shouldUpdate(
         (props.record == null && nextProps.record != null)
 );
 
-export default enhance(EditButton);
+const EditButton = enhance(EditButtonView) as ComponentType<
+    ButtonWithIconProps
+>;
+
+EditButton.propTypes = buttonWithIconPropTypes;
+
+EditButton.defaultProps = {
+    label: 'ra.action.edit',
+    icon: <ContentCreate />,
+};
+
+export default EditButton;

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, MouseEvent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import compose from 'recompose/compose';
@@ -18,11 +18,11 @@ import {
 } from 'ra-core';
 
 import Button from './Button';
-import { ButtonWithIconProps } from './types';
+import { ButtonWithIconProps, buttonWithIconPropTypes } from './types';
 
 interface Props extends ButtonWithIconProps {
     undoable: boolean;
-    onClick?: () => void;
+    onClick?: (event: MouseEvent<HTMLElement>) => void;
 }
 
 // Props injected by react-admin
@@ -55,7 +55,7 @@ const styles = (theme: Theme) =>
 class BulkDeleteButton extends Component<
     Props & InjectedProps & EnhancedProps
 > {
-    handleClick = () => {
+    handleClick = (event: MouseEvent<HTMLElement>) => {
         const {
             basePath,
             dispatchCrudDeleteMany,
@@ -72,7 +72,7 @@ class BulkDeleteButton extends Component<
         }
 
         if (typeof onClick === 'function') {
-            onClick();
+            onClick(event);
         }
     };
 
@@ -119,9 +119,8 @@ const EnhancedBulkDeleteButton = compose<
 )(BulkDeleteButton);
 
 EnhancedBulkDeleteButton.propTypes = {
-    label: PropTypes.string,
+    ...buttonWithIconPropTypes,
     undoable: PropTypes.bool,
-    icon: PropTypes.element,
 };
 
 EnhancedBulkDeleteButton.defaultProps = {
